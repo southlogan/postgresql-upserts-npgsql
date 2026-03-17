@@ -1,0 +1,32 @@
+# Build output
+bin/
+obj/
+publish/
+
+# Rider / IDE
+.idea/
+.vs/
+*.user
+*.suo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets (defensive)
+appsettings.Development.json
+appsettings.Local.json
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.egg-info/
+*.eggs/
+build/
+dist/
+.cache/
+

@@ -46,8 +46,6 @@ await UpsertPreferencesAsync( preferences, conn );
 //
 await DemoTableHelpers.WritePreferencesToConsoleAsync( conn );
 
-await DemoTableHelpers.TearDownAsync( conn );
-
 static async Task UpsertPreferenceAsync(
 	UserFoodPreference preference,
 	NpgsqlConnection conn )

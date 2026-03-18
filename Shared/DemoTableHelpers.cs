@@ -21,15 +21,6 @@ public static class DemoTableHelpers
 		await cmd.ExecuteNonQueryAsync();
 	}
 
-	public static async Task TearDownAsync( NpgsqlConnection conn )
-	{
-		//
-		// drop the test table
-		//
-		var sql = "DROP TABLE IF EXISTS user_preferences;";
-		await using var cmd = new NpgsqlCommand( sql, conn );
-		await cmd.ExecuteNonQueryAsync();
-	}
 	public static async Task WritePreferencesToConsoleAsync( NpgsqlConnection conn )
 	{
 		var sql = "SELECT id, name, food FROM user_preferences;";

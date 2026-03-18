@@ -83,7 +83,6 @@ static async Task BulkUpsertPreferencesAsync(
 			INSERT INTO user_preferences (id, name, food)
 			SELECT *
 			FROM unnest(@ids, @names, @foods)
-			AS t(id, name, food)
 			ON CONFLICT (id)
 			DO UPDATE SET
 			    name = EXCLUDED.name,

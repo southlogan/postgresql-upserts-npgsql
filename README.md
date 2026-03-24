@@ -113,13 +113,13 @@ Each project is intentionally small and self-contained so the pattern is easy to
 PowerShell:
 
 ```powershell
-$env:PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
+$env:UPSERTS_CONN_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
 ```
 
 Bash:
 
 ```bash
-export PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
+export UPSERTS_CONN_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
 ```
 
 ---
@@ -127,18 +127,21 @@ export PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=
 ### 2. Run a project
 
 ```bash
+dotnet restore --project BasicUpsert
 dotnet run --project BasicUpsert
 ```
 
 or
 
 ```bash
+dotnet restore --project BulkUpsert
 dotnet run --project BulkUpsert
 ```
 
 or
 
 ```bash
+dotnet restore --project ConditionalUpsert
 dotnet run --project ConditionalUpsert
 ```
 

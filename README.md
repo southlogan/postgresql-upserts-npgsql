@@ -127,22 +127,19 @@ export UPSERTS_CONN_STRING="Host=localhost;Port=5432;Database=your_db;Username=y
 ### 2. Run a project
 
 ```bash
-dotnet restore --project BasicUpsert
-dotnet run --project BasicUpsert
+dotnet run --project ./BasicUpsert/BasicUpsert.csproj
 ```
 
 or
 
 ```bash
-dotnet restore --project BulkUpsert
-dotnet run --project BulkUpsert
+dotnet run --project ./BulkUpsert/BulkUpsert.csproj
 ```
 
 or
 
 ```bash
-dotnet restore --project ConditionalUpsert
-dotnet run --project ConditionalUpsert
+dotnet run --project ./ConditionalUpsert/ConditionalUpsert.csproj
 ```
 
 ---

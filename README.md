@@ -1,28 +1,46 @@
-# PostgreSQL Upsert Demo (Npgsql)
+# PostgreSQL Upsert Patterns with Npgsql
 
-Simple console application demonstrating how to perform **upserts** in PostgreSQL using:
+This repository demonstrates multiple ways to perform **upserts** in **PostgreSQL** using **Npgsql** in .NET.
 
-* `ON CONFLICT DO UPDATE`
-* Npgsql (.NET PostgreSQL driver)
-
-The example shows how to insert new rows and update existing rows based on a primary key conflict.
+The goal is to show how the same logical operation—"insert or update"—can be implemented with increasing sophistication depending on performance and business rules.
 
 ---
 
-## What This Demonstrates
+## What This Repo Covers
 
-* Basic usage of Npgsql with PostgreSQL
-* Parameterized SQL commands
-* The `INSERT ... ON CONFLICT DO UPDATE` pattern
-* How PostgreSQL handles primary key conflicts
+Three progressively more advanced patterns:
 
-This is intentionally a **minimal, focused example**. It does not cover bulk operations, ORMs, or advanced patterns.
+### 1. Basic Upsert (Row-by-Row)
+- Uses `INSERT ... ON CONFLICT DO UPDATE`
+- Executes one command per row
+- Easiest to understand
+
+**Use case:** simple applications, low volume
 
 ---
 
-## How It Works
+### 2. Bulk Upsert
+- Uses `unnest(...)` with array parameters
+- Executes a single command for many rows
+- Much more efficient (fewer round trips)
 
-The core operation:
+**Use case:** batch processing, higher throughput scenarios
+
+---
+
+### 3. Conditional Upsert (Business Rule Enforcement)
+- Uses `ON CONFLICT ... DO UPDATE ... WHERE`
+- Prevents updates when certain conditions are not met
+- Demonstrates enforcing rules at the database level
+
+**Example rule:**
+> Do not allow a user's name to change once created
+
+---
+
+## Core SQL Patterns
+
+### Basic Upsert
 
 ```sql
 INSERT INTO user_preferences (id, name, food)
@@ -33,26 +51,72 @@ DO UPDATE SET
     food = EXCLUDED.food;
 ```
 
-Behavior:
+---
 
-* If `id` does **not** exist → row is inserted
-* If `id` **already exists** → row is updated
+### Bulk Upsert
+
+```sql
+INSERT INTO user_preferences (id, name, food)
+SELECT *
+FROM unnest(@ids, @names, @foods)
+ON CONFLICT (id)
+DO UPDATE SET
+    name = EXCLUDED.name,
+    food = EXCLUDED.food;
+```
 
 ---
 
-## Running the Demo
+### Conditional Upsert
+
+```sql
+INSERT INTO user_preferences (id, name, food)
+SELECT *
+FROM unnest(@ids, @names, @foods)
+ON CONFLICT (id)
+DO UPDATE SET
+    food = EXCLUDED.food
+WHERE user_preferences.name = EXCLUDED.name;
+```
+
+If the condition fails, the update is skipped and the existing row remains unchanged.
+
+---
+
+## Project Structure
+
+```
+Upserts.sln
+
+/Shared
+  UserFoodPreference.cs
+  DemoTableHelpers.cs
+
+/BasicUpsert
+  Program.cs
+
+/BulkUpsert
+  Program.cs
+
+/ConditionalUpsert
+  Program.cs
+```
+
+Each project is intentionally small and self-contained so the pattern is easy to understand.
+
+---
+
+## Running the Examples
 
 ### 1. Set your connection string
 
-Use an environment variable:
-
-#### PowerShell
+PowerShell:
 
 ```powershell
 $env:PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
 ```
 
-#### Bash
+Bash:
 
 ```bash
 export PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=your_user;Password=your_password"
@@ -60,46 +124,45 @@ export PG_CONNECTION_STRING="Host=localhost;Port=5432;Database=your_db;Username=
 
 ---
 
-### 2. Run the app
+### 2. Run a project
 
 ```bash
-dotnet run
+dotnet run --project BasicUpsert
+```
+
+or
+
+```bash
+dotnet run --project BulkUpsert
+```
+
+or
+
+```bash
+dotnet run --project ConditionalUpsert
 ```
 
 ---
 
-## Notes
+## Key Takeaways
 
-* The demo resets the table on each run to keep behavior deterministic.
-* This example performs **row-by-row upserts** for clarity.
-* For production workloads, consider bulk approaches (e.g., `COPY`, `unnest`).
-
----
-
-## Project Structure
-
-* `Program.cs` – main entry point and demo logic
-* `UserFoodPreference` – simple data model used for inserts/updates
+- `ON CONFLICT` is the core PostgreSQL mechanism for upserts
+- `EXCLUDED` provides access to incoming values during updates
+- `unnest` enables efficient bulk operations
+- `WHERE` inside `DO UPDATE` allows business rule enforcement
 
 ---
 
-## Why This Exists
+## Why This Matters
 
-This repo is intended as a **clear, minimal reference** for:
+Upserts are a common requirement in real systems. Understanding these patterns helps you:
 
-* Understanding PostgreSQL upsert semantics
-* Seeing how to execute parameterized commands with Npgsql
-* Avoiding common mistakes when using `ON CONFLICT`
+- avoid race conditions
+- reduce database round trips
+- enforce data integrity at the database level
 
 ---
 
 ## License
 
-Copyright 2026 Brian Bell
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: \
-\
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. \
-\
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. \
-MIT (or your preferred license)
+MIT

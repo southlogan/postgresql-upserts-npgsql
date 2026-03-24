@@ -7,7 +7,7 @@ using Upserts;
 // data having the same Name as the existing record.
 //
 // If an incoming record has the same primary key but
-// a different Name, the update doesn't happen.
+// a different Name, the conflicting row isn't updated.
 //
 
 UserFoodPreference[] preferences =
@@ -29,7 +29,10 @@ await DemoTableHelpers.ResetDemoTableAsync( conn );
 //
 // insert the initial values
 //
-await BulkUpsertPreferencesAsync( preferences, conn );
+await BulkConditionalUpsertPreferencesAsync( preferences, conn );
+
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Original Food Preferences:", conn );
 
 //
 // change the favorite foods of Bob and Alice and update the database.
@@ -37,7 +40,10 @@ await BulkUpsertPreferencesAsync( preferences, conn );
 //
 preferences[0].Food = "eggs";
 preferences[1].Food = "bananas";
-await BulkUpsertPreferencesAsync( preferences, conn );
+await BulkConditionalUpsertPreferencesAsync( preferences, conn );
+
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"New Foods for Alice and Bob:", conn );
 
 //
 // Name changes are disallowed in this version. If the
@@ -45,7 +51,10 @@ await BulkUpsertPreferencesAsync( preferences, conn );
 //
 preferences[2].Name = "Harold";
 preferences[2].Food = "ravioli";
-await BulkUpsertPreferencesAsync( preferences, conn );
+await BulkConditionalUpsertPreferencesAsync( preferences, conn );
+
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Tried to change the food and the name for Charles (update skipped):", conn );
 
 //
 // The values written to the console should be:
@@ -54,14 +63,13 @@ await BulkUpsertPreferencesAsync( preferences, conn );
 // 2 | Bob | bananas
 // 3 | Charles | steak
 //
-await DemoTableHelpers.WritePreferencesToConsoleAsync( conn );
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync( "Final Values:", conn );
 
-static async Task BulkUpsertPreferencesAsync(
+static async Task BulkConditionalUpsertPreferencesAsync(
 	UserFoodPreference[] preferences,
 	NpgsqlConnection conn )
 {
-	if( !preferences.Any() )
-		return;
+	if ( preferences.Length == 0 ) return;
 
 	//
 	// This command performs a bulk upsert using PostgreSQL
@@ -69,14 +77,11 @@ static async Task BulkUpsertPreferencesAsync(
 	//
 	// The difference between this and the "BulkUpsert" version
 	// is that this command disallows name changes. If there is
-	// a primary key conflict, the row update only happens if the
-	// incoming name is the same as the existing name. If there is
-	// a difference in the names, the update is skipped.
+	// a primary key conflict, the row update happens if the
+	// incoming name is the same as the existing name. Otherwise,
+	// the update is skipped.
 	//
-	// The SQL parameters should be arrays of values, like:
-	// ids[] = { 1, 2, 3}
-	// names[] = { "Alice", "Bob", "Charles" }
-	// foods[] = { "apples", "cherries", "steak" }
+	// The SQL parameters should be arrays of values.
 	//
 	// Each array is projected from the same source array
 	// in the same order so the values remain aligned by index.

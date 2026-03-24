@@ -1,6 +1,9 @@
 ﻿using Npgsql;
 using Upserts;
 
+//
+// this version upserts each row in the table, one-by-one
+//
 UserFoodPreference[] preferences =
 [
 	new() { Id = 1, Name = "Alice", Food = "apples" },
@@ -22,6 +25,9 @@ await DemoTableHelpers.ResetDemoTableAsync( conn );
 //
 await UpsertPreferencesAsync( preferences, conn );
 
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Original Food Preferences:", conn );
+
 //
 // change the favorite foods of Bob and Alice and update the database.
 // The database uses the Id to find the food preference to update.
@@ -30,21 +36,28 @@ preferences[0].Food = "eggs";
 preferences[1].Food = "bananas";
 await UpsertPreferencesAsync( preferences, conn );
 
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"New Foods for Alice and Bob:", conn );
+
 //
 // in this basic demo, name changes are allowed. Later
 // we will disallow name changes.
 //
 preferences[2].Name = "Harold";
+preferences[2].Food = "ravioli";
 await UpsertPreferencesAsync( preferences, conn );
+
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Changed the food and the name for Charles:", conn );
 
 //
 // The values written to the console should be:
 // User Food Preferences:
 // 1 | Alice | eggs
 // 2 | Bob | bananas
-// 3 | Harold | steak
+// 3 | Harold | ravioli
 //
-await DemoTableHelpers.WritePreferencesToConsoleAsync( conn );
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync( "Final Values:", conn );
 
 static async Task UpsertPreferenceAsync(
 	UserFoodPreference preference,
@@ -67,8 +80,6 @@ static async Task UpsertPreferenceAsync(
 				name = EXCLUDED.name, 
 				food = EXCLUDED.food;
 			""";
-
-	Console.WriteLine( $"Upserting {preference.Id} {preference.Name} {preference.Food}" );
 
 	await using var cmd = new NpgsqlCommand( sql, conn );
 

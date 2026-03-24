@@ -28,6 +28,9 @@ await DemoTableHelpers.ResetDemoTableAsync( conn );
 //
 await BulkUpsertPreferencesAsync( preferences, conn );
 
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Original Food Preferences:", conn );
+
 //
 // change the favorite foods of Bob and Alice and update the database.
 // The database uses the Id to find the food preference to update.
@@ -36,28 +39,34 @@ preferences[0].Food = "eggs";
 preferences[1].Food = "bananas";
 await BulkUpsertPreferencesAsync( preferences, conn );
 
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"New Foods for Alice and Bob:", conn );
+
 //
 // in this basic demo, name changes are allowed. Later
 // we will disallow name changes.
 //
 preferences[2].Name = "Harold";
+preferences[2].Food = "ravioli";
 await BulkUpsertPreferencesAsync( preferences, conn );
+
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync(
+	"Changed the food and the name for Charles:", conn );
 
 //
 // The values written to the console should be:
 // User Food Preferences:
 // 1 | Alice | eggs
 // 2 | Bob | bananas
-// 3 | Harold | steak
+// 3 | Harold | ravioli
 //
-await DemoTableHelpers.WritePreferencesToConsoleAsync( conn );
+await DemoTableHelpers.WriteAllPreferencesToConsoleAsync( "Final Values:", conn );
 
 static async Task BulkUpsertPreferencesAsync(
 	UserFoodPreference[] preferences,
 	NpgsqlConnection conn )
 {
-	if( !preferences.Any() )
-		return;
+	if ( preferences.Length == 0 ) return;
 
 	//
 	// This command performs a bulk upsert using PostgreSQL

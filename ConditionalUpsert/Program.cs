@@ -18,9 +18,9 @@ UserFoodPreference[] preferences =
 ];
 
 var connectionString =
-	Environment.GetEnvironmentVariable( "PG_CONNECTION_STRING" )
+	Environment.GetEnvironmentVariable( "UPSERTS_CONN_STRING" )
 	?? throw new InvalidOperationException(
-		"Environment variable PG_CONNECTION_STRING was not set." );
+		"Environment variable UPSERTS_CONN_STRING was not set." );
 
 await using var conn = new NpgsqlConnection( connectionString );
 await conn.OpenAsync();
